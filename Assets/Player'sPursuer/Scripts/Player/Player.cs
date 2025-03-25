@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -35,5 +36,15 @@ public class Player : MonoBehaviour
     private void OnDisable()
     {
         _playerInput.Disable();
+    }
+
+    private void OnDestroy()
+    {
+        (_mover as IDisposable)?.Dispose();
+        (_rotator as IDisposable)?.Dispose();
+        (_jumper as IDisposable)?.Dispose();
+
+        _playerInput?.Dispose();
+        _playerInput = null;
     }
 }

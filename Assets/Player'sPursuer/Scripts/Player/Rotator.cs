@@ -1,7 +1,9 @@
+using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Rotator : MonoBehaviour
+public class Rotator : MonoBehaviour, IDisposable
 {
     [Header("Player")]
     [SerializeField] private float _playerRotationSensitivity = 10f;
@@ -13,6 +15,7 @@ public class Rotator : MonoBehaviour
 
     private Transform _player;
     private Transform _camera;
+    private PlayerInput _playerInput;
     private float _playerRotationByY = 0;
     private float _cameraRotationByX = 0;
 
@@ -20,15 +23,49 @@ public class Rotator : MonoBehaviour
     {
         _player = player;
         _camera = camera;
+        _playerInput = playerInput;
 
-        playerInput.Player.LookHorizontal.performed += OnLookHorizontal;
-        playerInput.Player.LookVertical.performed += OnLookVertical;
+        Dispose();
+        SubscribeToEvents();
+    }
+
+    private void OnEnable()
+    {
+        SubscribeToEvents();
+    }
+
+    private void OnDisable()
+    {
+        Dispose();
+    }
+
+    private void OnDestroy()
+    {
+        Dispose();
     }
 
     public void Rotate()
     {
         RotatePlayer();
         RotateCamera();
+    }
+
+    public void Dispose()
+    {
+        if (_playerInput != null)
+        {
+            _playerInput.Player.LookHorizontal.performed -= OnLookHorizontal;
+            _playerInput.Player.LookVertical.performed -= OnLookVertical;
+        }
+    }
+
+    private void SubscribeToEvents()
+    {
+        if (_playerInput != null)
+        {
+            _playerInput.Player.LookHorizontal.performed += OnLookHorizontal;
+            _playerInput.Player.LookVertical.performed += OnLookVertical;
+        }
     }
 
     private void RotatePlayer()

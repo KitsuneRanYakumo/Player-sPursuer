@@ -1,7 +1,8 @@
 using UnityEngine.InputSystem;
 using UnityEngine;
+using System;
 
-public class Mover : MonoBehaviour
+public class Mover : MonoBehaviour, IDisposable
 {
     [Header("Speed")]
     [SerializeField] private float _moveSpeed = 10f;
@@ -15,34 +16,41 @@ public class Mover : MonoBehaviour
     [SerializeField] private float _slopeForce = 5f;
     [SerializeField] private float _slopeRayLength = 1.5f;
 
-    private Transform _thisTransform;
+    private Transform _transform;
     private Transform _camera;
     private CharacterController _characterController;
+    private PlayerInput _playerInput;
+    private Jumper _jumper;
+
     private Vector2 _inputDirection;
     private float _verticalVelocity;
     private Vector3 _resultDirection;
-    private Jumper _jumper;
 
     public void Initialize(Transform camera, CharacterController characterController, PlayerInput playerInput, Jumper jumper)
     {
-        _thisTransform = transform;
+        _transform = transform;
         _camera = camera;
         _characterController = characterController;
+        _playerInput = playerInput;
         _jumper = jumper;
 
-        _jumper.JumpButtonPressed += AddJumpForce;
-        playerInput.Player.Move.performed += OnMove;
-        playerInput.Player.Move.canceled += OnMove;
+        Dispose();
+        SubscribeToEvents();
     }
 
     private void OnEnable()
     {
-        _jumper.JumpButtonPressed += AddJumpForce;
+        SubscribeToEvents();
     }
 
     private void OnDisable()
     {
-        _jumper.JumpButtonPressed -= AddJumpForce;
+        Dispose();
+    }
+
+    private void OnDestroy()
+    {
+        Dispose();
     }
 
     public void UpdateMovement()
@@ -51,6 +59,34 @@ public class Mover : MonoBehaviour
         SlideDown();
         ApplyGravity();
         MoveCharacter();
+    }
+
+    public void Dispose()
+    {
+        if (_playerInput != null)
+        {
+            _playerInput.Player.Move.performed -= OnMove;
+            _playerInput.Player.Move.canceled -= OnMove;
+        }
+
+        if (_jumper != null)
+        {
+            _jumper.JumpButtonPressed -= AddJumpForce;
+        }
+    }
+
+    private void SubscribeToEvents()
+    {
+        if (_playerInput != null)
+        {
+            _playerInput.Player.Move.performed += OnMove;
+            _playerInput.Player.Move.canceled += OnMove;
+        }
+
+        if (_jumper != null)
+        {
+            _jumper.JumpButtonPressed += AddJumpForce;
+        }
     }
 
     private void CalculateMovement()
@@ -64,7 +100,7 @@ public class Mover : MonoBehaviour
 
     private void SlideDown()
     {
-        if (Physics.Raycast(_thisTransform.position, Vector3.down, out RaycastHit hitInfo, _slopeRayLength) == false)
+        if (Physics.Raycast(_transform.position, Vector3.down, out RaycastHit hitInfo, _slopeRayLength) == false)
             return;
 
         if (Vector3.Angle(hitInfo.normal, Vector3.up) > _characterController.slopeLimit)

@@ -7,20 +7,20 @@ public class Guard : MonoBehaviour
     [SerializeField] private float _moveSpeed;
     [SerializeField] private float _minDistanceToTarget = 2;
 
-    private Transform _thisTransform;
+    private Transform _transform;
     private Transform _playerTransform;
     private Rigidbody _rigidbody;
 
     private void Awake()
     {
-        _thisTransform = transform;
+        _transform = transform;
         _playerTransform = _target.transform;
         _rigidbody = GetComponent<Rigidbody>();
     }
 
     private void FixedUpdate()
     {
-        if ((_playerTransform.position - _thisTransform.position).sqrMagnitude > _minDistanceToTarget * _minDistanceToTarget)
+        if ((_playerTransform.position - _transform.position).sqrMagnitude > _minDistanceToTarget * _minDistanceToTarget)
         {
             FollowToTarget();
         }
@@ -33,16 +33,15 @@ public class Guard : MonoBehaviour
 
     private void FollowToTarget()
     {
-        Vector3 distance = _playerTransform.position - _thisTransform.position;
-        Vector3 direction = distance.normalized;
-        Vector3 newPosition = _thisTransform.position + _moveSpeed * Time.fixedDeltaTime * direction;
+        Vector3 direction = (_playerTransform.position - _transform.position).normalized;
+        Vector3 newPosition = _transform.position + _moveSpeed * Time.fixedDeltaTime * direction;
         _rigidbody.MovePosition(newPosition);
     }
 
     private void LookAtTarget()
     {
         Vector3 targetPosition = _playerTransform.position;
-        targetPosition.y = _thisTransform.position.y;
-        _thisTransform.LookAt(targetPosition);
+        targetPosition.y = _transform.position.y;
+        _transform.LookAt(targetPosition);
     }
 }
