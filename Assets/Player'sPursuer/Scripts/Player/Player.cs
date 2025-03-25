@@ -40,9 +40,9 @@ public class Player : MonoBehaviour
 
     private void OnDestroy()
     {
-        (_mover as IDisposable)?.Dispose();
-        (_rotator as IDisposable)?.Dispose();
-        (_jumper as IDisposable)?.Dispose();
+        _mover.Dispose();
+        _rotator.Dispose();
+        _jumper.Dispose();
 
         _playerInput?.Dispose();
         _playerInput = null;
