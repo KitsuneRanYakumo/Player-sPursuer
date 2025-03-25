@@ -5,6 +5,7 @@ public class Guard : MonoBehaviour
 {
     [SerializeField] private Player _target;
     [SerializeField] private float _moveSpeed;
+    [SerializeField] private float _minDistanceToTarget = 2;
 
     private Transform _thisTransform;
     private Transform _playerTransform;
@@ -19,7 +20,10 @@ public class Guard : MonoBehaviour
 
     private void FixedUpdate()
     {
-        FollowToTarget();
+        if ((_playerTransform.position - _thisTransform.position).sqrMagnitude > _minDistanceToTarget * _minDistanceToTarget)
+        {
+            FollowToTarget();
+        }
     }
 
     private void Update()
