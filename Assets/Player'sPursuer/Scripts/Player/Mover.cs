@@ -3,29 +3,52 @@ using UnityEngine;
 
 public class Mover : MonoBehaviour
 {
+    [Header("Speed")]
     [SerializeField] private float _moveSpeed = 10f;
     [SerializeField] private float _strafeSpeed = 8f;
+
+    [Header("Gravity")]
     [SerializeField] private float _groundedGravity = -0.5f;
     [SerializeField] private float _airborneGravityMultiplier = 1f;
 
+    [Header("Slope")]
+    [SerializeField] private float _slopeForce = 5f;
+    [SerializeField] private float _slopeRayLength = 1.5f;
+
+    private Transform _thisTransform;
     private Transform _camera;
     private CharacterController _characterController;
     private Vector2 _inputDirection;
     private float _verticalVelocity;
     private Vector3 _resultDirection;
+    private Jumper _jumper;
 
-    public void Initialize(Transform camera, CharacterController characterController, PlayerInput playerInput)
+    public void Initialize(Transform camera, CharacterController characterController, PlayerInput playerInput, Jumper jumper)
     {
+        _thisTransform = transform;
         _camera = camera;
         _characterController = characterController;
+        _jumper = jumper;
 
+        _jumper.JumpButtonPressed += AddJumpForce;
         playerInput.Player.Move.performed += OnMove;
         playerInput.Player.Move.canceled += OnMove;
+    }
+
+    private void OnEnable()
+    {
+        _jumper.JumpButtonPressed += AddJumpForce;
+    }
+
+    private void OnDisable()
+    {
+        _jumper.JumpButtonPressed -= AddJumpForce;
     }
 
     public void UpdateMovement()
     {
         CalculateMovement();
+        SlideDown();
         ApplyGravity();
         MoveCharacter();
     }
@@ -39,9 +62,22 @@ public class Mover : MonoBehaviour
                           _inputDirection.x * _strafeSpeed * right;
     }
 
+    private void SlideDown()
+    {
+        if (Physics.Raycast(_thisTransform.position, Vector3.down, out RaycastHit hitInfo, _slopeRayLength) == false)
+            return;
+
+        if (Vector3.Angle(hitInfo.normal, Vector3.up) > _characterController.slopeLimit)
+        {
+            _resultDirection.x += (1f - hitInfo.normal.y) * hitInfo.normal.x * _slopeForce;
+            _resultDirection.z += (1f - hitInfo.normal.y) * hitInfo.normal.z * _slopeForce;
+            _resultDirection.y -= _slopeForce;
+        }
+    }
+
     private void ApplyGravity()
     {
-        if (_characterController.isGrounded)
+        if (_characterController.isGrounded && _verticalVelocity < 0)
         {
             _verticalVelocity = _groundedGravity;
         }
@@ -56,6 +92,11 @@ public class Mover : MonoBehaviour
     private void MoveCharacter()
     {
         _characterController.Move(_resultDirection * Time.deltaTime);
+    }
+
+    private void AddJumpForce(float force)
+    {
+        _verticalVelocity = force;
     }
 
     private void OnMove(InputAction.CallbackContext context)

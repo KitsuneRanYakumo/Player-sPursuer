@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,6 +8,8 @@ public class Jumper : MonoBehaviour
 
     private CharacterController _characterController;
 
+    public event Action<float> JumpButtonPressed;
+
     public void Initialize(CharacterController characterController, PlayerInput playerInput)
     {
         _characterController = characterController;
@@ -15,6 +18,9 @@ public class Jumper : MonoBehaviour
 
     private void Jump(InputAction.CallbackContext context)
     {
-
+        if (_characterController.isGrounded)
+        {
+            JumpButtonPressed?.Invoke(_jumpForce);
+        }
     }
 }

@@ -16,9 +16,9 @@ public class Player : MonoBehaviour
         _characterController = GetComponent<CharacterController>();
         _playerInput = new PlayerInput();
 
-        _mover.Initialize(_camera, _characterController, _playerInput);
-        _rotator.Initialize(transform, _camera, _playerInput);
         _jumper.Initialize(_characterController, _playerInput);
+        _mover.Initialize(_camera, _characterController, _playerInput, _jumper);
+        _rotator.Initialize(transform, _camera, _playerInput);
     }
 
     private void OnEnable()
